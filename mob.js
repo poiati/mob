@@ -8,11 +8,18 @@
         if (!view) {
           throw 'Mob.RouteNotFoundError: ' + action;
         }
-        if (view.fetch) {
-          view.fetch.done(function(data) { 
+        if (typeof view.fetch === 'function') {
+          var deferred = view.fetch();
+
+          deferred.done(function(data) { 
             context.data = data;
             view.show(context) 
           });
+
+          if (typeof view.onFetchError === 'function') {
+            deferred.fail(view.onFetchError);
+          }
+
           return;
         }
         view.show(context);
@@ -22,11 +29,21 @@
 
 
   var View = (function() {
+    var _copySuperProperties = function(superclass, subclass) {
+      for (property in superclass) {
+        if (!subclass[property]) {
+          subclass[property] = superclass[property];
+        }
+      }
+    }
+
     var _extend = function(definition) {
       var _super = this;
 
       definition['extend'] = _extend;
       definition['_super'] = _super;
+
+      _copySuperProperties(_super, definition);
 
       return definition;
     };
