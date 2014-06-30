@@ -51,6 +51,21 @@ describe('View', function() {
     assert(viewExecuted);
     assert(barViewExecuted);
   });
+
+  it('inherits methods', function() {
+    var superFoo = sinon.spy();
+
+    var SuperView = Mob.View.extend({
+      foo: superFoo
+    });
+
+    var SubView = SuperView.extend({
+    });
+
+    SubView.foo();
+
+    assert(superFoo.called);
+  });
 });
 
 
@@ -82,19 +97,25 @@ describe('Dispatcher', function() {
 
   describe('loading async data before view show', function() {
     it('calls only after promise is done', function() {
-      var promise = { done: sinon.spy() };
+      var promise = { done: sinon.spy(), fail: sinon.spy() },
+          onFetchError = function() {};
 
       var AjaxView = Mob.View.extend({
-        fetch: promise,
+        fetch: function() {
+          return promise;
+        },
 
         show: function(context) {
-        }
+        },
+
+        onFetchError: onFetchError
       });
       Mob.Router.route('#ajax', AjaxView);
 
       dispatcher.dispatch('#ajax', context);
 
       assert(promise.done.called);
+      assert(promise.fail.calledWith(onFetchError));
     });
   });
 });
