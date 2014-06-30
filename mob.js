@@ -11,11 +11,15 @@
         if (view.fetch) {
           view.fetch.done(function(data) { 
             context.data = data;
-            view.show(context) 
+            view.show(context);
           });
           return;
         }
         view.show(context);
+
+        if (typeof view.afterShow === 'function') {
+          view.afterShow();
+        }
       }
     };
   };
@@ -24,6 +28,12 @@
   var View = (function() {
     var _extend = function(definition) {
       var _super = this;
+
+      for (property in _super) {
+        if (typeof definition[property] === 'undefined') {
+          definition[property] = _super[property];
+        }
+      }
 
       definition['extend'] = _extend;
       definition['_super'] = _super;
@@ -47,4 +57,3 @@
   module.exports.View = View;
   module.exports.Router = Router;
 })();
-

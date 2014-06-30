@@ -5,6 +5,7 @@ var assert = require('assert'),
 
 var viewExecuted,
     viewExecutedWitchContext,
+    afterShowExecute,
     barViewExecuted,
     subclassProperty;
 
@@ -12,6 +13,10 @@ var FooView = Mob.View.extend({
   show: function(context) {
     viewExecuted = true;
     viewExecutedWitchContext = context;
+  },
+
+  afterShow: function() {
+    afterShowExecute = true;
   }
 });
 
@@ -19,7 +24,21 @@ Mob.Router.route('#foo', FooView)
 
 
 describe('View', function() {
-  it('supports inheritance', function() {
+  beforeEach(function() {
+    viewExecuted = false;
+    barViewExecuted = false;
+  });
+
+  it('supports basic inheritance', function() {
+    var BarView = FooView.extend({
+    });
+
+    BarView.show()
+
+    assert(viewExecuted);
+  });
+
+  it('supports inheritance override', function() {
     var BarView = FooView.extend({
       show: function(context) {
         this._super.show(context);
@@ -45,6 +64,12 @@ describe('Dispatcher', function() {
 
     assert(viewExecuted);
     assert(viewExecutedWitchContext === context);
+  });
+
+  it('execute the after show callback if it exists', function() {
+    dispatcher.dispatch('#foo', context);
+
+    assert(afterShowExecute);
   });
 
   it('throws an error when no route is found', function() {
