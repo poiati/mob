@@ -5,15 +5,20 @@
     return {
       dispatch: function(action, context) {
         var view = _routes[action];
+
         if (!view) {
           throw 'Mob.RouteNotFoundError: ' + action;
         }
+
+        var executeAfterShow = typeof view.afterShow === 'function';
+
         if (typeof view.fetch === 'function') {
           var deferred = view.fetch();
 
           deferred.done(function(data) { 
             context.data = data;
             view.show(context);
+            executeAfterShow && view.afterShow();
           });
 
           if (typeof view.onFetchError === 'function') {
@@ -23,10 +28,7 @@
           return;
         }
         view.show(context);
-
-        if (typeof view.afterShow === 'function') {
-          view.afterShow();
-        }
+        executeAfterShow && view.afterShow();
       }
     };
   };
